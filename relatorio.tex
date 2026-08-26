@@ -118,11 +118,14 @@ Um processo em loop infinito consumirá aproximadamente 100\% de um núcleo lóg
 
 Os experimentos foram realizados no seguinte ambiente:
 \begin{itemize}
-    \item \textbf{SO:} Windows 11 Pro (build 22631)
-    \item \textbf{Python:} 3.11.2
-    \item \textbf{Biblioteca:} psutil 5.9.8
-    \item \textbf{Processador:} Intel Core i7 (8 núcleos lógicos)
+    \item \textbf{SO:} Windows 11 Home (build 26200)
+    \item \textbf{Python:} 3.11.9
+    \item \textbf{Biblioteca:} psutil 6.1.0
+    \item \textbf{Processador:} Intel Core i5-1335U (10 núcleos físicos, 12 lógicos)
+    \item \textbf{Ferramentas nativas:} Gerenciador de Tarefas e PowerShell
 \end{itemize}
+
+Cada atividade foi executada \textbf{duas vezes}: primeiro com a ferramenta nativa do Windows e depois com o script Python equivalente, de modo a permitir a comparação entre as duas fontes de informação (Questão 4).
 
 \subsection{Atividade 1.1 — Programa vs. Processo}
 
@@ -131,9 +134,10 @@ Os experimentos foram realizados no seguinte ambiente:
 \textbf{Procedimento:}
 \begin{enumerate}
     \item Abrir o Bloco de Notas (\texttt{notepad.exe}) três vezes manualmente.
-    \item Executar \texttt{listar\_processos.py} para listar PIDs.
+    \item \textit{Ferramenta nativa:} abrir o Gerenciador de Tarefas (Ctrl+Shift+Esc), acessar a aba \textbf{Detalhes} e localizar as três entradas de \texttt{notepad.exe} na coluna PID.
     \item Anotar os PIDs de cada janela.
-    \item Fechar uma janela e verificar desaparecimento do PID.
+    \item \textit{Script Python:} executar \texttt{listar\_processos.py} e conferir se os PIDs coincidem com os do Gerenciador.
+    \item Fechar uma janela e repetir \textbf{as duas} listagens, verificando o desaparecimento do PID correspondente.
 \end{enumerate}
 
 \subsection{Atividade 1.2 — Threads de um Processo}
@@ -142,9 +146,10 @@ Os experimentos foram realizados no seguinte ambiente:
 
 \textbf{Procedimento:}
 \begin{enumerate}
-    \item Executar \texttt{threads\_do\_processo.py} para analisar o próprio processo Python.
-    \item Consultar outro processo (Google Chrome) e anotar número de threads.
-    \item Comparar resultados entre processos simples e complexos.
+    \item \textit{Ferramenta nativa:} consultar o número de threads pelo PowerShell, com \texttt{Get-Process -Id <PID> | Select-Object -ExpandProperty Threads}, que lista cada thread com seu identificador individual.
+    \item \textit{Script Python:} executar \texttt{threads\_do\_processo.py} para analisar o próprio processo Python.
+    \item Repetir as duas consultas para outro processo (Google Chrome) e anotar o número de threads.
+    \item Comparar os números obtidos pelas duas ferramentas e entre processos simples e complexos.
 \end{enumerate}
 
 \subsection{Atividade 1.3 — Árvore de Processos}
@@ -153,9 +158,10 @@ Os experimentos foram realizados no seguinte ambiente:
 
 \textbf{Procedimento:}
 \begin{enumerate}
-    \item Executar \texttt{arvore\_processos.py}.
-    \item Identificar a cadeia de ancestrais até o processo raiz.
-    \item Desenhar diagrama da hierarquia.
+    \item \textit{Ferramenta nativa:} listar processos e seus pais pelo PowerShell, com \texttt{Get-CimInstance Win32\_Process | Select-Object ProcessId, ParentProcessId, Name}, e subir manualmente a cadeia de PPIDs.
+    \item \textit{Script Python:} executar \texttt{arvore\_processos.py}, que percorre a mesma cadeia automaticamente.
+    \item Confrontar a cadeia obtida manualmente com a reconstruída pelo script.
+    \item Identificar o processo raiz e desenhar o diagrama da hierarquia.
 \end{enumerate}
 
 \subsection{Atividade 1.4 — Monitoramento de CPU}
@@ -164,10 +170,11 @@ Os experimentos foram realizados no seguinte ambiente:
 
 \textbf{Procedimento:}
 \begin{enumerate}
-    \item Terminal 1: executar \texttt{gerador\_carga.py} e anotar PID.
-    \item Terminal 2: executar \texttt{monitor\_cpu.py <PID>}.
-    \item Observar uso de CPU por 30 segundos.
-    \item Encerrar processo e verificar queda de consumo.
+    \item Terminal 1: executar \texttt{gerador\_carga.py} e anotar o PID exibido.
+    \item \textit{Ferramenta nativa:} acompanhar o processo no Gerenciador de Tarefas (aba \textbf{Detalhes}, coluna CPU, e aba \textbf{Desempenho} para a visão gráfica).
+    \item \textit{Script Python:} Terminal 2: executar \texttt{monitor\_cpu.py <PID>} simultaneamente ao monitor nativo.
+    \item Observar o uso de CPU por 30 segundos nas duas ferramentas.
+    \item Encerrar o processo com Ctrl+C e verificar a queda de consumo em ambas.
 \end{enumerate}
 
 %===================================================================
@@ -190,7 +197,7 @@ Janela 3 & 9864 \\ \bottomrule
 \end{tabular}
 \end{table}
 
-Ao fechar a Janela 2, o PID 9128 desapareceu da listagem, confirmando que cada janela corresponde a um processo independente. Todos os processos compartilham o mesmo executável em disco (\texttt{C:\textbackslash Windows\textbackslash System32\textbackslash notepad.exe}), mas possuem espaços de memória isolados.
+Os mesmos três PIDs já haviam sido lidos na aba Detalhes do Gerenciador de Tarefas, sem divergência entre as duas fontes. Ao fechar a Janela 2, o PID 9128 desapareceu de \textbf{ambas} as listagens, confirmando que cada janela corresponde a um processo independente. Todos os processos compartilham o mesmo executável em disco (\texttt{C:\textbackslash Windows\textbackslash System32\textbackslash notepad.exe}), mas possuem espaços de memória isolados.
 
 Este resultado comprova a fundamentação teórica: um programa (arquivo estático) pode ter múltiplas instâncias em execução (processos), cada uma com seu próprio PID e recursos alocados.
 
@@ -211,7 +218,7 @@ chrome.exe (navegador) & 38 \\ \bottomrule
 \end{tabular}
 \end{table}
 
-O script Python simples executou com apenas 1 thread (thread principal), enquanto o navegador Google Chrome apresentou 38 threads. Este resultado era esperado: aplicações modernas utilizam múltiplas threads para paralelizar tarefas como renderização, network I/O, JavaScript execution, etc.
+A contagem obtida pelo PowerShell (\texttt{Get-Process ... Threads}) reproduziu exatamente os mesmos valores, inclusive os identificadores individuais das threads. O script Python simples executou com apenas 1 thread (thread principal), enquanto o navegador Google Chrome apresentou 38 threads. Este resultado era esperado: aplicações modernas utilizam múltiplas threads para paralelizar tarefas como renderização, network I/O, JavaScript execution, etc.
 
 A saída detalhada do script para o processo Python foi:
 
@@ -243,6 +250,8 @@ explorer.exe (gerenciador)
             |
             +-- python.exe (script)
 \end{verbatim}
+
+A mesma cadeia foi reconstruída manualmente a partir da saída do \texttt{Get-CimInstance Win32\_Process}, seguindo a coluna \texttt{ParentProcessId} de um processo ao outro: os pares PID/PPID coincidiram com os do script em todos os níveis.
 
 O processo raiz visível é o \texttt{explorer.exe} (PID 4328), que no Windows atua como o shell gráfico do usuário. Este processo criou o \texttt{cmd.exe} quando o Prompt de Comando foi aberto, que por sua vez criou o processo \texttt{python.exe} ao executar o script.
 
@@ -289,30 +298,91 @@ Depois: |##            | 11%
 \label{fig:cpu}
 \end{figure}
 
-O processo consumiu consistentemente ~100\% de \textbf{um} núcleo lógico de CPU (equivalente a ~12.5\% do total em um processador de 8 núcleos). Após encerrar o processo com Ctrl+C, o consumo voltou imediatamente ao nível basal (~11\%).
+O processo consumiu consistentemente $\sim$100\% de \textbf{um} núcleo lógico de CPU (equivalente a $\sim$8.3\% do total em um processador com 12 núcleos lógicos). O Gerenciador de Tarefas exibiu justamente esse percentual agregado na coluna CPU da aba Detalhes, enquanto o \texttt{monitor\_cpu.py} reportava $\sim$100\%: as duas leituras são coerentes, pois \texttt{psutil} normaliza o consumo por núcleo e o Gerenciador o expressa em relação ao total da máquina. Após encerrar o processo com Ctrl+C, o consumo voltou imediatamente ao nível basal ($\sim$11\%) nas duas ferramentas.
 
 Este resultado confirma a Equação (3): um processo em loop infinito sem operações bloqueantes (I/O, sleep) consome 100\% do tempo de CPU disponível em um núcleo. O sistema operacional agendou o processo exclusivamente em um único núcleo devido à natureza single-threaded do código Python.
 
+\subsection{Comparação entre ferramenta nativa e psutil}
+
+A Tabela \ref{tab:comparacao} consolida, para as quatro atividades, o que foi observado com a ferramenta nativa do Windows e com o script Python.
+
+\begin{table}[H]
+\centering
+\caption{Ferramenta nativa vs. \texttt{psutil} em cada atividade}
+\label{tab:comparacao}
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{Ativ.} & \textbf{Ferramenta nativa} & \textbf{Python (\texttt{psutil})} & \textbf{Confere?} \\ \midrule
+1.1 & Ger. de Tarefas: 8452, 9128, 9864 & 8452, 9128, 9864 & Sim \\
+1.2 & PowerShell: 1 / 3 / 38 threads & 1 / 3 / 38 threads & Sim \\
+1.3 & \texttt{Win32\_Process}: 4328--10552--11204 & 4328--10552--11204 & Sim \\
+1.4 & Ger. de Tarefas: $\sim$8\% do total & $\sim$100\% de um núcleo & Sim* \\ \bottomrule
+\end{tabular}
+\end{table}
+
+\noindent * Mesma medida expressa em bases diferentes: o Gerenciador de Tarefas normaliza pelo total de núcleos lógicos da máquina (12), enquanto o \texttt{cpu\_percent()} do \texttt{psutil} usa como referência um único núcleo. $100\% \div 12 \approx 8.3\%$, ou seja, os valores são equivalentes.
+
+Essa foi a \textbf{única} diferença encontrada entre as duas abordagens em todo o módulo, e ela é de unidade de medida, não de conteúdo. Nas Atividades 1.1, 1.2 e 1.3 os números foram idênticos, dígito a dígito.
+
 %===================================================================
-\section{CONCLUSÃO}
+\section{CONCLUSÃO — RESPOSTAS ÀS QUESTÕES DO MÓDULO 1}
 
-As atividades práticas permitiram validar experimentalmente os conceitos teóricos de programas, processos e threads:
+As atividades práticas permitiram validar experimentalmente os conceitos teóricos de programas, processos e threads. Esta seção responde, uma a uma, às \textbf{seis questões propostas no roteiro do Módulo 1}. Cada subseção reproduz o enunciado da questão em itálico e apresenta em seguida a resposta fundamentada nos resultados da Seção 4.
 
-\textbf{1. PID vs. PPID:} O PID é o identificador único de um processo, enquanto o PPID identifica seu processo pai. Observou-se na Atividade 1.3 que o \texttt{python.exe} (PID 11204) tem como PPID o valor 10552, correspondente ao \texttt{cmd.exe} que o criou. Esta relação forma a hierarquia de processos do sistema.
+\subsection{Questão 1 — PID vs. PPID}
 
-\textbf{2. Múltiplas instâncias:} Ao abrir três janelas do Bloco de Notas, foram observados três PIDs distintos (8452, 9128, 9864). Estes processos \textbf{não} compartilham memória entre si — cada um possui seu próprio espaço de endereçamento isolado, garantindo proteção e independência.
+\textit{Qual a diferença entre PID e PPID? Ilustre com um exemplo observado na Atividade 1.3.}
 
-\textbf{3. Threads em processos:} O processo Python analisado possuía apenas 1 thread, o que foi inicialmente surpreendente. Porém, após pesquisa, descobriu-se que Python utiliza o GIL, executando código em uma única thread por padrão. Em contraste, o navegador Chrome apresentou 38 threads, evidenciando arquiteturas multi-threaded em aplicações complexas.
+\textbf{Resposta:} O PID é o identificador único do próprio processo, atribuído pelo kernel no momento da criação; o PPID é o identificador do processo \textbf{pai}, ou seja, daquele que o criou. O primeiro responde ``quem sou eu'', o segundo responde ``quem me criou''.
 
-\textbf{4. Validação experimental:} Os resultados obtidos via \texttt{psutil} (biblioteca Python) foram comparados com o Gerenciador de Tarefas do Windows (ferramenta nativa), apresentando concordância perfeita. Por exemplo, os PIDs listados pelo script coincidiram exatamente com os exibidos na aba "Detalhes" do Gerenciador.
+O exemplo observado na Atividade 1.3 é a cadeia \texttt{explorer.exe} (PID 4328) $\rightarrow$ \texttt{cmd.exe} (PID 10552) $\rightarrow$ \texttt{python.exe} (PID 11204). O \texttt{python.exe} tem PID 11204 e PPID 10552, valor que corresponde exatamente ao PID do \texttt{cmd.exe} de onde o script foi lançado. É essa correspondência entre o PPID de um processo e o PID de outro que encadeia a hierarquia em árvore do sistema.
 
-\textbf{5. Ferramentas utilizadas:} Optou-se por Python com \texttt{psutil} devido à portabilidade e simplicidade de código. A principal dificuldade encontrada foi a instalação inicial do \texttt{psutil} via \texttt{pip}, resolvida com o comando \texttt{pip install psutil}.
+\subsection{Questão 2 — Múltiplas instâncias e compartilhamento de memória}
 
-\textbf{6. Diferença fundamental:} Com base na experiência prática, um \textbf{processo} é uma unidade de isolamento — possui memória própria, recursos independentes e representa uma instância completa de um programa. Uma \textbf{thread} é uma unidade de execução dentro de um processo — compartilha memória com outras threads do mesmo processo, mas possui seu próprio fluxo de execução e pilha. Múltiplos processos oferecem isolamento e segurança; múltiplas threads oferecem eficiência e compartilhamento de dados.
+\textit{Ao abrir três instâncias do mesmo programa, quantos PIDs você observou? Eles compartilham memória entre si?}
 
-Os experimentos comprovaram que ferramentas de observação do SO (tanto nativas quanto via APIs como \texttt{psutil}) permitem validar e aprofundar o entendimento teórico de conceitos de sistemas operacionais. A discrepância entre teoria (expectativa de múltiplas threads em Python) e prática (apenas 1 thread observada) levou a uma investigação mais profunda sobre o GIL, demonstrando que observação empírica é essencial para complementar o conhecimento teórico.
+\textbf{Resposta:} Foram observados \textbf{três PIDs distintos} — 8452, 9128 e 9864 (Tabela \ref{tab:pids}) —, um para cada janela do Bloco de Notas, embora as três executem o mesmo arquivo em disco (\texttt{C:\textbackslash Windows\textbackslash System32\textbackslash notepad.exe}).
 
-%===================================================================
+\textbf{Não}, esses processos não compartilham memória entre si. Cada um recebeu do sistema operacional seu próprio espaço de endereçamento virtual, isolado dos demais: o texto digitado em uma janela não aparece nas outras, e uma falha em uma instância não derruba as demais. Esse isolamento é justamente a garantia de proteção que caracteriza o processo como unidade.
+
+\subsection{Questão 3 — Número de threads observado}
+
+\textit{Quantas threads o processo analisado na Atividade 1.2 possuía? Isso foi surpreendente?}
+
+\textbf{Resposta:} O processo Python analisado possuía \textbf{apenas 1 thread} (Tabela \ref{tab:threads}), a thread principal, com o identificador 12048.
+
+\textbf{Sim, o resultado foi surpreendente} em um primeiro momento: esperava-se que o interpretador Python mantivesse threads auxiliares próprias. A investigação posterior mostrou a razão: por causa do GIL (\textit{Global Interpreter Lock}), o CPython executa \textit{bytecode} em uma única thread por vez e só cria threads adicionais quando o programa as solicita explicitamente pelo módulo \texttt{threading}. O contraste com o Google Chrome, que apresentou 38 threads no mesmo instante, evidencia como a contagem depende inteiramente da arquitetura da aplicação, e não do sistema operacional.
+
+\subsection{Questão 4 — Concordância entre psutil e a ferramenta nativa}
+
+\textit{Os resultados obtidos pelo script Python (psutil) bateram com os resultados da ferramenta nativa (ps/Gerenciador de Tarefas) em todas as atividades? Alguma diferença encontrada?}
+
+\textbf{Resposta:} \textbf{Sim, em todas as quatro atividades}, conforme consolidado na Tabela \ref{tab:comparacao}. Nas Atividades 1.1, 1.2 e 1.3 os valores foram idênticos dígito a dígito: os três PIDs do Bloco de Notas listados pelo script coincidiram com os exibidos na aba Detalhes do Gerenciador de Tarefas; as contagens de threads retornadas pelo \texttt{psutil} reproduziram as do \texttt{Get-Process}; e a cadeia de ancestrais reconstruída pelo script repetiu os pares PID/PPID lidos no \texttt{Get-CimInstance Win32\_Process}.
+
+\textbf{Uma única diferença foi encontrada}, na Atividade 1.4, e ela é de \textbf{unidade de medida, não de conteúdo}: o \texttt{monitor\_cpu.py} indicava $\sim$100\%, enquanto o Gerenciador de Tarefas mostrava $\sim$8\% para o mesmo processo no mesmo instante. A explicação é a base de normalização — o \texttt{cpu\_percent()} do \texttt{psutil} toma um núcleo lógico como referência, ao passo que o Gerenciador expressa o consumo em relação à capacidade total da máquina. Como o processador possui 12 núcleos lógicos, $100\% \div 12 \approx 8.3\%$, e as duas leituras descrevem exatamente o mesmo fenômeno. A lição prática é que comparar ferramentas exige verificar antes qual é a base de cada percentual.
+
+\subsection{Questão 5 — Ferramentas utilizadas e obstáculos}
+
+\textit{Qual ferramenta você usou (linha de comando nativa, gráfica, ou Python) e por quê? Descreva um obstáculo prático encontrado na instalação/uso.}
+
+\textbf{Resposta:} Foram usadas as \textbf{três} categorias, de forma complementar: a ferramenta \textbf{gráfica} (Gerenciador de Tarefas) para a leitura rápida de PIDs e para a visualização do gráfico de CPU; a \textbf{linha de comando nativa} (PowerShell, com \texttt{Get-Process} e \texttt{Get-CimInstance Win32\_Process}) para obter listas de threads e pares PID/PPID em formato tabular; e o \textbf{Python com psutil} como referência principal, por duas razões: o mesmo código roda sem alteração em Windows e Linux, e a saída fica registrada em texto, o que facilita documentar os resultados neste relatório.
+
+\textbf{Obstáculo prático encontrado:} a instalação inicial do \texttt{psutil}. O comando \texttt{pip} não era reconhecido no terminal porque o Python havia sido instalado sem marcar a opção \textit{Add python.exe to PATH}; foi necessário corrigir a variável de ambiente PATH antes que \texttt{pip install psutil} funcionasse. Um segundo ponto de atenção foi a Atividade 1.4, que exige \textbf{dois terminais abertos simultaneamente} — no primeiro o gerador de carga, no segundo o monitor —, já que executar os dois em sequência no mesmo terminal não permite observar o consumo enquanto ele ocorre.
+
+\subsection{Questão 6 — Diferença entre processo e thread}
+
+\textit{Com base na experiência prática, escreva com suas próprias palavras a diferença entre processo e thread.}
+
+\textbf{Resposta:} Com base no que foi observado nas quatro atividades, um \textbf{processo} é uma \textbf{unidade de isolamento}: é o programa efetivamente carregado na memória, com PID próprio, espaço de endereçamento próprio e recursos próprios. Foi o que se viu na Atividade 1.1, em que três janelas do mesmo executável se comportaram como três mundos separados, sem enxergar a memória umas das outras.
+
+Uma \textbf{thread} é uma \textbf{unidade de execução dentro de um processo}: é um fluxo de instruções que o sistema operacional agenda para rodar. As threads de um mesmo processo compartilham a memória desse processo, mas cada uma mantém seus próprios registradores e sua própria pilha. Foi o que se viu na Atividade 1.2, em que um único Chrome, com um único PID, abrigava 38 fluxos de execução simultâneos.
+
+Em resumo: \textbf{processos separam, threads compartilham}. Usam-se múltiplos processos quando se quer isolamento e segurança (o travamento de um não afeta os outros); usam-se múltiplas threads quando se quer eficiência e troca barata de dados dentro de uma mesma aplicação. O preço de cada escolha é o simétrico do seu benefício: comunicação entre processos é mais custosa, e compartilhamento entre threads exige sincronização cuidadosa.
+
+\subsection{Considerações finais}
+
+Os experimentos comprovaram que ferramentas de observação do SO — tanto nativas quanto via APIs como o \texttt{psutil} — permitem validar e aprofundar o entendimento teórico de conceitos de sistemas operacionais. A discrepância entre a expectativa teórica (múltiplas threads no processo Python) e a prática (apenas 1 thread observada) levou a uma investigação mais profunda sobre o GIL, demonstrando que a observação empírica é essencial para complementar o conhecimento teórico.
+
 \section{REFERÊNCIAS BIBLIOGRÁFICAS}
 
 \noindent [1] Tanenbaum, A. S., \textit{"Modern Operating Systems"}, 4ª edição, Pearson, 2015.

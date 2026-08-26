@@ -105,25 +105,8 @@ Computacao paralela/
 └── relatorio.tex            # Template do relatório em LaTeX
 ```
 
-## Questões para o relatório
-
-Após executar todas as atividades, responda no relatório:
-
-1. Qual a diferença entre PID e PPID? Ilustre com um exemplo observado na Atividade 1.3.
-2. Ao abrir três instâncias do mesmo programa, quantos PIDs você observou? Eles compartilham memória entre si?
-3. Quantas threads o processo analisado na Atividade 1.2 possuía? Isso foi surpreendente?
-4. Os resultados obtidos pelo script Python (psutil) bateram com os resultados da ferramenta nativa (Gerenciador de Tarefas)?
-5. Qual ferramenta você usou e por quê? Alguma dificuldade encontrada?
-6. Com base na experiência prática, escreva com suas próprias palavras a diferença entre processo e thread.
-
----
-
 ## Dicas
 
 - Use o **Gerenciador de Tarefas** (Ctrl+Shift+Esc) para visualizar processos e threads graficamente
 - Na aba "Detalhes" do Gerenciador de Tarefas, você pode ver os PIDs
 - Para ver threads no Gerenciador, baixe o **Process Explorer** (gratuito da Microsoft): https://learn.microsoft.com/sysinternals/downloads/process-explorer
-
----
-
-**Boa prática!**
