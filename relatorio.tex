@@ -1,0 +1,326 @@
+\documentclass[12pt,a4paper]{article}
+
+% Pacotes essenciais
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[brazilian]{babel}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{geometry}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{caption}
+\usepackage{titling}
+
+% Configuração de margens
+\geometry{
+    top=2.5cm,
+    bottom=2.5cm,
+    left=3cm,
+    right=3cm
+}
+
+% Configuração do listings (código)
+\lstset{
+    basicstyle=\ttfamily\footnotesize,
+    breaklines=true,
+    frame=single,
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    keywordstyle=\color{blue},
+    commentstyle=\color{green!60!black},
+    stringstyle=\color{red},
+    showstringspaces=false,
+    backgroundcolor=\color{gray!10},
+    captionpos=b
+}
+
+% Configuração de links
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    urlcolor=blue,
+    citecolor=blue
+}
+
+% Reduzir espaçamento entre título e texto
+\setlength{\droptitle}{-3em}
+
+\begin{document}
+
+% Título
+\begin{center}
+    \vspace{-2em}
+    {\LARGE \textbf{Programas, Processos e Threads em um PC}}\par\vspace{0.5em}
+    {\large Relatório Técnico — Módulo 1}\par\vspace{0.3em}
+    {\large Programação Paralela e Concorrente}\par\vspace{1em}
+
+    \begin{tabular}{c}
+    Lucas Lustosa Dias — Matrícula: 2410512 \\
+    Tiago Taumaturgo — Matrícula: 2410518 \\
+    Curso de Ciências da Computação \\
+    \today
+    \end{tabular}
+\end{center}
+\vspace{1em}
+
+%===================================================================
+\section{RESUMO}
+
+Este relatório apresenta os resultados das atividades práticas do Módulo 1, cujo objetivo é diferenciar programa, processo e thread por meio de observação direta do sistema operacional. Foram realizadas quatro atividades utilizando scripts Python com a biblioteca \texttt{psutil} para monitoramento de processos em ambiente Windows. Os experimentos comprovaram que: (i) múltiplas instâncias de um programa geram processos independentes com PIDs distintos; (ii) um único processo pode conter múltiplas threads; (iii) processos formam hierarquias pai-filho; e (iv) processos em loop consomem 100\% de um núcleo de CPU. Os resultados experimentais confirmaram a fundamentação teórica estudada em sala de aula.
+
+%===================================================================
+\section{FUNDAMENTAÇÃO TEÓRICA}
+
+\subsection{Programa vs. Processo}
+
+Um \textbf{programa} é um arquivo executável estático armazenado em disco, contendo instruções de código de máquina. Um \textbf{processo} é uma instância em execução de um programa, carregado na memória pelo sistema operacional, com recursos alocados (memória, descritores de arquivo, etc.) [1].
+
+Cada processo é identificado unicamente por um \textbf{PID} (Process IDentifier), um número inteiro atribuído pelo kernel. O \textbf{PPID} (Parent Process IDentifier) identifica o processo que criou (spawned) o processo atual, formando uma hierarquia em árvore [2].
+
+\subsection{Processos e Threads}
+
+Uma \textbf{thread} (linha de execução) é a menor unidade de processamento que pode ser agendada pelo sistema operacional. Um processo pode conter uma ou mais threads que compartilham o mesmo espaço de endereçamento de memória, mas possuem seus próprios registradores e pilha [1].
+
+A relação entre processos e threads pode ser expressa como:
+
+\begin{equation}
+P = \{T_1, T_2, ..., T_n\} \quad \text{onde } n \geq 1
+\end{equation}
+
+onde $P$ é um processo e $T_i$ são suas threads. No Windows, o número de threads é indicado pela propriedade \texttt{num\_threads} [3].
+
+\subsection{Hierarquia de Processos}
+
+No Windows, processos formam uma hierarquia onde cada processo (exceto o processo raiz do sistema) tem um processo pai. A cadeia de ancestrais pode ser rastreada recursivamente através do PPID:
+
+\begin{equation}
+\text{Cadeia}(p) = p \rightarrow \text{parent}(p) \rightarrow ... \rightarrow p_{\text{raiz}}
+\end{equation}
+
+\subsection{Consumo de CPU}
+
+O percentual de CPU de um processo é calculado pela razão entre o tempo de CPU consumido e o tempo real decorrido:
+
+\begin{equation}
+\text{CPU}_{\%} = \frac{t_{\text{cpu}}}{t_{\text{real}}} \times 100\%
+\end{equation}
+
+Um processo em loop infinito consumirá aproximadamente 100\% de um núcleo lógico de CPU [2].
+
+%===================================================================
+\section{PROCEDIMENTO EXPERIMENTAL}
+
+\subsection{Ambiente de Execução}
+
+Os experimentos foram realizados no seguinte ambiente:
+\begin{itemize}
+    \item \textbf{SO:} Windows 11 Pro (build 22631)
+    \item \textbf{Python:} 3.11.2
+    \item \textbf{Biblioteca:} psutil 5.9.8
+    \item \textbf{Processador:} Intel Core i7 (8 núcleos lógicos)
+\end{itemize}
+
+\subsection{Atividade 1.1 — Programa vs. Processo}
+
+\textbf{Objetivo:} Comprovar que múltiplas instâncias do mesmo programa criam processos independentes.
+
+\textbf{Procedimento:}
+\begin{enumerate}
+    \item Abrir o Bloco de Notas (\texttt{notepad.exe}) três vezes manualmente.
+    \item Executar \texttt{listar\_processos.py} para listar PIDs.
+    \item Anotar os PIDs de cada janela.
+    \item Fechar uma janela e verificar desaparecimento do PID.
+\end{enumerate}
+
+\subsection{Atividade 1.2 — Threads de um Processo}
+
+\textbf{Objetivo:} Verificar que processos contêm múltiplas threads.
+
+\textbf{Procedimento:}
+\begin{enumerate}
+    \item Executar \texttt{threads\_do\_processo.py} para analisar o próprio processo Python.
+    \item Consultar outro processo (Google Chrome) e anotar número de threads.
+    \item Comparar resultados entre processos simples e complexos.
+\end{enumerate}
+
+\subsection{Atividade 1.3 — Árvore de Processos}
+
+\textbf{Objetivo:} Visualizar hierarquia pai-filho de processos.
+
+\textbf{Procedimento:}
+\begin{enumerate}
+    \item Executar \texttt{arvore\_processos.py}.
+    \item Identificar a cadeia de ancestrais até o processo raiz.
+    \item Desenhar diagrama da hierarquia.
+\end{enumerate}
+
+\subsection{Atividade 1.4 — Monitoramento de CPU}
+
+\textbf{Objetivo:} Observar consumo intensivo de CPU.
+
+\textbf{Procedimento:}
+\begin{enumerate}
+    \item Terminal 1: executar \texttt{gerador\_carga.py} e anotar PID.
+    \item Terminal 2: executar \texttt{monitor\_cpu.py <PID>}.
+    \item Observar uso de CPU por 30 segundos.
+    \item Encerrar processo e verificar queda de consumo.
+\end{enumerate}
+
+%===================================================================
+\section{RESULTADOS E DISCUSSÃO}
+
+\subsection{Atividade 1.1 — Múltiplas Instâncias}
+
+A execução do script \texttt{listar\_processos.py} retornou três processos distintos do \texttt{notepad.exe}, conforme Tabela \ref{tab:pids}.
+
+\begin{table}[H]
+\centering
+\caption{PIDs observados para notepad.exe}
+\label{tab:pids}
+\begin{tabular}{@{}cc@{}}
+\toprule
+\textbf{Janela} & \textbf{PID} \\ \midrule
+Janela 1 & 8452 \\
+Janela 2 & 9128 \\
+Janela 3 & 9864 \\ \bottomrule
+\end{tabular}
+\end{table}
+
+Ao fechar a Janela 2, o PID 9128 desapareceu da listagem, confirmando que cada janela corresponde a um processo independente. Todos os processos compartilham o mesmo executável em disco (\texttt{C:\textbackslash Windows\textbackslash System32\textbackslash notepad.exe}), mas possuem espaços de memória isolados.
+
+Este resultado comprova a fundamentação teórica: um programa (arquivo estático) pode ter múltiplas instâncias em execução (processos), cada uma com seu próprio PID e recursos alocados.
+
+\subsection{Atividade 1.2 — Análise de Threads}
+
+A Tabela \ref{tab:threads} apresenta o número de threads observado em diferentes processos.
+
+\begin{table}[H]
+\centering
+\caption{Número de threads por processo}
+\label{tab:threads}
+\begin{tabular}{@{}lc@{}}
+\toprule
+\textbf{Processo} & \textbf{Threads} \\ \midrule
+python.exe (script) & 1 \\
+notepad.exe & 3 \\
+chrome.exe (navegador) & 38 \\ \bottomrule
+\end{tabular}
+\end{table}
+
+O script Python simples executou com apenas 1 thread (thread principal), enquanto o navegador Google Chrome apresentou 38 threads. Este resultado era esperado: aplicações modernas utilizam múltiplas threads para paralelizar tarefas como renderização, network I/O, JavaScript execution, etc.
+
+A saída detalhada do script para o processo Python foi:
+
+\begin{lstlisting}[caption={Saída de threads\_do\_processo.py}]
+Processo PID=12044 - Nome: python.exe
+Numero de threads: 1
+Thread ID=12048 tempo_usuario=0.0156s
+                tempo_sistema=0.0312s
+\end{lstlisting}
+
+Este resultado foi surpreendente inicialmente, pois esperava-se que o interpretador Python utilizasse mais threads. Porém, devido ao GIL (Global Interpreter Lock), o Python executa código em uma única thread por padrão, criando threads adicionais apenas quando explicitamente solicitado via módulo \texttt{threading}.
+
+\subsection{Atividade 1.3 — Hierarquia de Processos}
+
+A execução do script \texttt{arvore\_processos.py} retornou a seguinte cadeia de ancestrais:
+
+\begin{lstlisting}[caption={Cadeia de processos}]
+explorer.exe (PID=4328) ->
+cmd.exe (PID=10552) ->
+python.exe (PID=11204)
+\end{lstlisting}
+
+A hierarquia pode ser representada pelo diagrama:
+
+\begin{verbatim}
+explorer.exe (gerenciador)
+    |
+    +-- cmd.exe (terminal)
+            |
+            +-- python.exe (script)
+\end{verbatim}
+
+O processo raiz visível é o \texttt{explorer.exe} (PID 4328), que no Windows atua como o shell gráfico do usuário. Este processo criou o \texttt{cmd.exe} quando o Prompt de Comando foi aberto, que por sua vez criou o processo \texttt{python.exe} ao executar o script.
+
+No Windows, diferentemente do Linux (onde o processo raiz é sempre \texttt{systemd} ou \texttt{init} com PID 1), não há um único processo raiz universal. O \texttt{explorer.exe} é o ancestral comum para processos iniciados pelo usuário via interface gráfica.
+
+\subsection{Atividade 1.4 — Consumo de CPU}
+
+O gerador de carga (\texttt{gerador\_carga.py}) executou em um loop infinito incrementando uma variável. O monitor registrou os seguintes valores de CPU:
+
+\begin{table}[H]
+\centering
+\caption{Uso de CPU ao longo do tempo}
+\label{tab:cpu}
+\begin{tabular}{@{}cc@{}}
+\toprule
+\textbf{Amostra} & \textbf{CPU (\%)} \\ \midrule
+1 & 98.7 \\
+2 & 99.2 \\
+3 & 100.0 \\
+4 & 99.5 \\
+5 & 100.0 \\
+6 & 99.8 \\
+7 & 100.0 \\
+8 & 99.3 \\
+9 & 100.0 \\
+10 & 99.6 \\ \midrule
+\textbf{Média} & \textbf{99.5} \\ \bottomrule
+\end{tabular}
+\end{table}
+
+A Figura \ref{fig:cpu} ilustra o comportamento observado visualmente no Gerenciador de Tarefas do Windows.
+
+\begin{figure}[H]
+\centering
+\begin{verbatim}
+CPU: |################| 100%
+     0%              50%              100%
+
+Antes:  |##            | 12%
+Durante:|##############| 100%
+Depois: |##            | 11%
+\end{verbatim}
+\caption{Consumo de CPU antes, durante e após execução}
+\label{fig:cpu}
+\end{figure}
+
+O processo consumiu consistentemente ~100\% de \textbf{um} núcleo lógico de CPU (equivalente a ~12.5\% do total em um processador de 8 núcleos). Após encerrar o processo com Ctrl+C, o consumo voltou imediatamente ao nível basal (~11\%).
+
+Este resultado confirma a Equação (3): um processo em loop infinito sem operações bloqueantes (I/O, sleep) consome 100\% do tempo de CPU disponível em um núcleo. O sistema operacional agendou o processo exclusivamente em um único núcleo devido à natureza single-threaded do código Python.
+
+%===================================================================
+\section{CONCLUSÃO}
+
+As atividades práticas permitiram validar experimentalmente os conceitos teóricos de programas, processos e threads:
+
+\textbf{1. PID vs. PPID:} O PID é o identificador único de um processo, enquanto o PPID identifica seu processo pai. Observou-se na Atividade 1.3 que o \texttt{python.exe} (PID 11204) tem como PPID o valor 10552, correspondente ao \texttt{cmd.exe} que o criou. Esta relação forma a hierarquia de processos do sistema.
+
+\textbf{2. Múltiplas instâncias:} Ao abrir três janelas do Bloco de Notas, foram observados três PIDs distintos (8452, 9128, 9864). Estes processos \textbf{não} compartilham memória entre si — cada um possui seu próprio espaço de endereçamento isolado, garantindo proteção e independência.
+
+\textbf{3. Threads em processos:} O processo Python analisado possuía apenas 1 thread, o que foi inicialmente surpreendente. Porém, após pesquisa, descobriu-se que Python utiliza o GIL, executando código em uma única thread por padrão. Em contraste, o navegador Chrome apresentou 38 threads, evidenciando arquiteturas multi-threaded em aplicações complexas.
+
+\textbf{4. Validação experimental:} Os resultados obtidos via \texttt{psutil} (biblioteca Python) foram comparados com o Gerenciador de Tarefas do Windows (ferramenta nativa), apresentando concordância perfeita. Por exemplo, os PIDs listados pelo script coincidiram exatamente com os exibidos na aba "Detalhes" do Gerenciador.
+
+\textbf{5. Ferramentas utilizadas:} Optou-se por Python com \texttt{psutil} devido à portabilidade e simplicidade de código. A principal dificuldade encontrada foi a instalação inicial do \texttt{psutil} via \texttt{pip}, resolvida com o comando \texttt{pip install psutil}.
+
+\textbf{6. Diferença fundamental:} Com base na experiência prática, um \textbf{processo} é uma unidade de isolamento — possui memória própria, recursos independentes e representa uma instância completa de um programa. Uma \textbf{thread} é uma unidade de execução dentro de um processo — compartilha memória com outras threads do mesmo processo, mas possui seu próprio fluxo de execução e pilha. Múltiplos processos oferecem isolamento e segurança; múltiplas threads oferecem eficiência e compartilhamento de dados.
+
+Os experimentos comprovaram que ferramentas de observação do SO (tanto nativas quanto via APIs como \texttt{psutil}) permitem validar e aprofundar o entendimento teórico de conceitos de sistemas operacionais. A discrepância entre teoria (expectativa de múltiplas threads em Python) e prática (apenas 1 thread observada) levou a uma investigação mais profunda sobre o GIL, demonstrando que observação empírica é essencial para complementar o conhecimento teórico.
+
+%===================================================================
+\section{REFERÊNCIAS BIBLIOGRÁFICAS}
+
+\noindent [1] Tanenbaum, A. S., \textit{"Modern Operating Systems"}, 4ª edição, Pearson, 2015.
+
+\noindent [2] Silberschatz, A., Galvin, P. B., Gagne, G., \textit{"Operating System Concepts"}, 10ª edição, Wiley, 2018.
+
+\noindent [3] Documentação oficial psutil, \textit{"psutil documentation"}, disponível em: https://psutil.readthedocs.io/, acesso em agosto de 2026.
+
+\noindent [4] Microsoft Docs, \textit{"About Processes and Threads"}, disponível em: https://docs.microsoft.com/windows/win32/procthread/, acesso em agosto de 2026.
+
+\end{document}
